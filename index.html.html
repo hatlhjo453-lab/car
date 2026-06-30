@@ -1,9 +1,933 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>مركبتي</title>
+<html lang="ar" dir="rtl"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق CAR - النسخة الماستر الشاملة المحمية</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #0b141a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff; overflow: hidden;
+        }
+
+        /* حاوية الموبايل الماستر */
+        .phone-container {
+            width: 100%; max-width: 412px; height: 100%; max-height: 892px;
+            margin: 0 auto; background: #111b21; position: relative;
+            display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+
+        /* شاشة البدء المؤقتة (Splash) */
+        .splash-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b141a; display: flex; justify-content: center; align-items: center;
+            z-index: 999; transition: opacity 0.6s ease-in-out, visibility 0.6s;
+        }
+        .logo-box { text-align: center; padding: 20px; }
+        .logo-text-ar { font-size: 55px; font-weight: 900; color: #e9b646; margin: 0; }
+        .logo-text-en { font-size: 24px; font-weight: bold; color: #fff; margin: 5px 0 15px 0; letter-spacing: 6px; }
+        
+        .welcome-text-container {
+            font-size: 16px; font-weight: 500; color: #8696a0; min-height: 24px; margin-top: 10px; direction: rtl; display: inline-block;
+        }
+        
+        .cursor {
+            display: inline-block; width: 2px; height: 16px; background-color: #e9b646; margin-right: 3px; animation: blink 0.7s infinite; vertical-align: middle;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+        /* الهيدر العلوي بأسلوب الواتساب الفخم */
+        .whatsapp-header {
+            background-color: #202c33; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header-title { display: flex; flex-direction: column; }
+        .header-title .main-name { font-size: 22px; font-weight: bold; color: #e9b646; }
+        .header-title .sub-name { font-size: 11px; color: #8696a0; }
+        .header-icons { display: flex; gap: 18px; font-size: 20px; color: #aebac1; cursor: pointer; }
+
+        /* التبويبات العلوية الثلاثية */
+        .whatsapp-tabs { background-color: #202c33; display: flex; text-align: center; }
+        .tab-item { flex: 1; padding: 12px 0; font-size: 12px; font-weight: bold; color: #8696a0; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-item.active { color: #e9b646; border-bottom-color: #e9b646; }
+
+        /* حاوية المحتوى الرئيسي */
+        .content-section { flex: 1; overflow-y: auto; padding-bottom: 110px; display: none; }
+        .content-section.active { display: block; }
+
+        /* استشارة يوتيوب المفلترة */
+        .youtube-consult-card {
+            background-color: rgba(255, 0, 0, 0.1); border-bottom: 1px solid #222; padding: 12px 15px; display: flex; align-items: center; gap: 10px;
+        }
+        .yt-input { flex: 1; background: #2a3942; border: 1px solid #444; border-radius: 20px; padding: 8px 15px; color: white; font-size: 13px; }
+        .yt-btn { background: #ff0000; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        /* نافذة بحث الوكالة الذكية الجديدة */
+        .agency-search-card {
+            background-color: rgba(233, 182, 70, 0.1); border: 1px solid rgba(233, 182, 70, 0.3); border-radius: 12px; margin: 15px; padding: 15px; display: none; animation: fadeIn 0.4s ease;
+        }
+        .agency-input { width: 100%; background: #2a3942; border: 1px solid #e9b646; border-radius: 10px; padding: 10px; color: white; font-size: 14px; box-sizing: border-box; margin-bottom: 10px; text-align: center; }
+        .agency-btn { width: 100%; background: linear-gradient(135deg, #e9b646 0%, #9a721b 100%); color: #111b21; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* قوائم الدردشة والورش */
+        .chat-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #222; cursor: pointer; }
+        .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background-color: #687781; display: flex; justify-content: center; align-items: center; font-size: 24px; border: 2px solid #e9b646; position: relative; }
+        .chat-details { flex: 1; margin-right: 15px; text-align: right; }
+        .chat-name { font-size: 15px; font-weight: bold; color: #e9b646; }
+        .chat-msg { font-size: 13px; color: #8696a0; margin-top: 3px; }
+
+        /* ========================================== */
+        /* ستايل نظام حصر وتأمين الـ GPS الجديد (الدرع الواقي) */
+        /* ========================================== */
+        .secure-gps-modal {
+            background: #1f2c34; border: 2px solid #e9b646; border-radius: 16px; margin: 15px; padding: 15px; display: none; animation: fadeIn 0.4s ease;
+        }
+        .secure-modal-title { font-size: 16px; font-weight: bold; color: #e9b646; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
+        .secure-workshop-item { background: #2a3942; border-radius: 10px; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; border-right: 4px solid #00a884; }
+        .workshop-info-row { display: flex; justify-content: space-between; font-size: 13px; }
+        .workshop-buttons-row { display: flex; gap: 8px; }
+        .secure-btn-chat { flex: 1; background: #00a884; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+        .secure-btn-pay { flex: 1; background: linear-gradient(135deg, #e9b646 0%, #9a721b 100%); color: #111b21; border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+        .secure-lock-badge { font-size: 10px; color: #8696a0; text-align: center; margin-top: 5px; display: block; }
+
+        /* مكونات قسم مجتمع كَار وبناء الصداقات */
+        .profile-summary-card { background: #202c33; margin: 15px; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border-left: 4px solid #e9b646; }
+        .user-info h4 { margin: 0; color: #e9b646; font-size: 16px; }
+        .user-info p { margin: 3px 0 0 0; color: #8696a0; font-size: 12px; }
+
+        .post-box { background: #1f2c34; border: 1px solid #2d3b43; border-radius: 12px; margin: 15px; padding: 12px; }
+        .post-input { width: 100%; background: #2a3942; border: none; border-radius: 8px; padding: 10px; color: white; box-sizing: border-box; font-size: 13px; resize: none; }
+        .post-btn { background: #00a884; color: white; border: none; padding: 6px 15px; border-radius: 15px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; float: left; }
+
+        .community-feed { padding: 0 15px; }
+        .feed-post { background: #202c33; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.02); }
+        .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .post-user { font-weight: bold; color: #e9b646; font-size: 13px; }
+        .post-time { font-size: 10px; color: #8696a0; margin-right: auto; }
+        .post-content { font-size: 13px; color: #e9edef; line-height: 1.4; }
+        .post-actions { display: flex; gap: 20px; margin-top: 10px; font-size: 12px; color: #8696a0; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; cursor: pointer; }
+
+        /* شاشة عرض الأسعار والنسب الذكية */
+        .wallet-card { background: linear-gradient(135deg, #202c33 0%, #111b21 100%); margin: 15px; padding: 15px; border-radius: 15px; border: 1px solid rgba(233, 182, 70, 0.2); text-align: center; }
+        .price-tag { font-size: 26px; font-weight: 900; color: #e9b646; margin: 8px 0; }
+        
+        .investment-box { background: #202c33; margin: 10px 15px; padding: 12px; border-radius: 12px; border-right: 4px solid #e9b646; }
+        .investment-title { font-weight: bold; font-size: 13px; color: #fff; margin-bottom: 4px; }
+        .investment-desc { font-size: 11px; color: #8696a0; line-height: 1.4; }
+
+        /* شريط الـ GPS السفلي */
+        .bottom-nav-bar {
+            position: absolute; bottom: 20px; left: 8%; right: 8%; width: 84%; background: #ffffff; border-radius: 16px; padding: 8px 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); box-sizing: border-box; z-index: 10;
+        }
+
+        .nav-item-btn {
+            background: #202c33; border: 1px solid rgba(233, 182, 70, 0.3); border-radius: 10px; color: #e9b646; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 2px; cursor: pointer; transition: all 0.25s ease;
+        }
+        .nav-item-btn:active, .nav-item-btn:hover { background: linear-gradient(135deg, #e9b646 0%, #9a721b 100%); color: #111b21; border-color: #e9b646; transform: translateY(-2px); }
+        .nav-item-btn .icon { font-size: 18px; margin-bottom: 2px; }
+        .nav-item-btn .label-ar { font-size: 10px; font-weight: bold; }
+        .nav-item-btn .label-en { font-size: 8px; opacity: 0.8; }
+
+        .promo-banner { background: #1f2c34; padding: 10px; margin: 15px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: bold; border: 1px dashed #e9b646; }
+    </style>
 </head>
 <body>
-    <h1>أهلاً بك في تطبيق مركبتي</h1>
-</body>
-</html>
+
+    <div class="phone-container">
+        
+        <div class="splash-screen" id="splash" style="opacity: 0; visibility: hidden;">
+            <div class="logo-box">
+                <div class="logo-text-ar">كَار</div>
+                <div class="logo-text-en">CAR</div>
+                <div class="welcome-text-container">
+                    <span id="typewriter">بسم الله الرحمن الرحيم أهلاً بك في تطبيق كَار</span><span class="cursor"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="whatsapp-header">
+            <div class="header-title">
+                <span class="main-name">كَار / CAR</span>
+                <span class="sub-name">الوكالات، الصيانة، ومجتمع العملاء</span>
+            </div>
+            <div class="header-icons">
+                <span onclick="switchTab('chats')">💬</span>
+                <span onclick="switchTab('community')">👥</span>
+                <span onclick="switchTab('wallet')">💰</span>
+            </div>
+        </div>
+
+        <div class="whatsapp-tabs">
+            <div class="tab-item active" id="tab-chats" onclick="switchTab('chats')">الخدمات / Chats</div>
+            <div class="tab-item" id="tab-community" onclick="switchTab('community')">مجتمع كَار / Community</div>
+            <div class="tab-item" id="tab-wallet" onclick="switchTab('wallet')">الأسعار / Rates</div>
+        </div>
+
+        <div class="content-section active" id="sec-chats">
+            <div class="youtube-consult-card">
+                <span style="font-size: 24px;">💡</span>
+                <input type="text" id="ytSearch" class="yt-input" placeholder="اكتب مشكلة السيارة للحصول على استشارة...">
+                <button class="yt-btn" onclick="searchYoutube()">استشارة</button>
+            </div>
+
+            <div class="agency-search-card" id="agencyCard" style="display: none;">
+                <input type="text" id="carBrandInput" class="agency-input" placeholder="اكتب ماركة سيارتك (مثال: شانجان، BMW، تويوتا)...">
+                <button class="agency-btn" onclick="searchSpecificAgency()">ابحث عن الوكالة بالـ GPS</button>
+            </div>
+
+            <div class="secure-gps-modal" id="secureGpsModal" style="display: block;">
+                <div class="secure-modal-title" id="secureModalTitle">📍 أقرب خدمات [مركز تغيير زيت سيارات] بالـ GPS الآمن</div>
+                <div id="secureWorkshopsList">
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">مركز البركة الفني الشامل</span>
+                            <span style="color:#e9b646;">1.2 كم (⭐ 4.9)</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: مركز البركة الفني الشامل')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: مركز البركة الفني الشامل')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">ورشة النجم السريع المتنقلة</span>
+                            <span style="color:#e9b646;">3.5 كم (⭐ 4.7)</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: ورشة النجم السريع المتنقلة')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: ورشة النجم السريع المتنقلة')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">المهندس المحترف لصيانة السيارات</span>
+                            <span style="color:#e9b646;">5.0 كم (⭐ 4.8)</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: المهندس المحترف لصيانة السيارات')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: المهندس المحترف لصيانة السيارات')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                </div>
+                <span class="secure-lock-badge">🛡️ جميع المعاملات والاتصالات مشفرة ومحمية لحفظ حقوقك</span>
+            </div>
+
+            <div class="chat-row" onclick="openFilteredGPS('ميكانيك سيارات ورشة')">
+                <div class="profile-avatar">🔧</div>
+                <div class="chat-details">
+                    <div class="chat-name">ميكانيك سيارات / Mechanics</div>
+                    <div class="chat-msg">تحديد الورش وفلاتر الـ GPS نشطة وآمنة الآن..</div>
+                </div>
+            </div>
+
+            <div class="chat-row" onclick="toggleAgencySearch()">
+                <div class="profile-avatar">🏢</div>
+                <div class="chat-details">
+                    <div class="chat-name">ابحث عن وكالة سيارتك المحددة</div>
+                    <div class="chat-msg">اضغط هنا واكتب نوع سيارتك لفلترة موقع الوكالة بالملي..</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="sec-community">
+            <div class="profile-summary-card">
+                <div class="profile-avatar" style="background-color: #e9b646; color: #111b21; font-weight: bold;">👤</div>
+                <div class="user-info">
+                    <h4>ملفي الشخصي (العميل)</h4>
+                    <p>نوع السيارة المفضلة: تويوتا كامري / سيارات رياضية</p>
+                </div>
+            </div>
+
+            <div class="post-box">
+                <textarea class="post-input" rows="2" placeholder="شارك ملاك السيارات تجربتك أو اسأل عن نصيحة..."></textarea>
+                <button class="post-btn" onclick="alert('تم نشر مشاركتك في مجتمع كَار بنجاح!')">انشر الآن</button>
+                <div style="clear: both;"></div>
+            </div>
+
+            <div class="community-feed">
+                <div class="feed-post">
+                    <div class="post-header">
+                        <div class="profile-avatar" style="width:32px; height:32px; font-size:16px;">🚗</div>
+                        <div class="post-user">أبو أحمد (راعي شانجان)</div>
+                        <div class="post-time">منذ 10 دقائق</div>
+                    </div>
+                    <div class="post-content">يا شباب وكالة الشانجان الجديدة خدمتهم سريعة بالـ GPS وفلاتر التطبيق جابت لي أقرب فرع بالملي! أنصحكم فيه.</div>
+                    <div class="post-actions">
+                        <span onclick="alert('تم إرسال طلب صداقة لأبو أحمد!')">➕ إضافة صديق</span>
+                        <span onclick="alert('فتح دردشة خاصة لبناء صداقة ومشاركة الخبرات...')">💬 دردشة</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="sec-wallet">
+            <div class="promo-banner" id="promoBanner" style="color: rgb(0, 168, 132); border-color: rgb(0, 168, 132);">🎁 عرض الإطلاق: متبقي لك 27 يوماً مجاناً بالكامل!</div>
+
+            <div class="wallet-card">
+                <div style="font-size: 13px; color: #8696a0;">رسوم تصليح العطل والعمل للزبون</div>
+                <div class="price-tag" id="workPriceTag">0 ر.س</div>
+                <div style="font-size: 11px; color: rgb(0, 168, 132);" id="workPriceDesc">بمناسبة الإطلاق: الرسوم مجانية بالكامل لفترتك التجريبية!</div>
+            </div>
+
+            <div class="investment-box">
+                <div class="investment-title">🚗 تسعيرة مشوار الخدمة المتنقلة والسطحات</div>
+                <div class="investment-desc">
+                    • <strong>سعر الكيلومتر الواحد (Per KM Rate):</strong> 2 ريال سعودي يتم احتسابها تلقائياً بالـ GPS من موقع الورشة إلى العميل.<br>
+                    • <strong>نسبة التطبيق الذكية (Platform Fee):</strong> تبلغ 10% تُخصم من إجمالي قيمة المشوار لصالح إدارة التطبيق (حصتك الاستثمارية).
+                </div>
+            </div>
+
+            <div class="investment-box">
+                <div class="investment-title">🎫 قيمة اشتراك الورش والمؤسسات</div>
+                <div class="investment-desc" id="subPriceDesc">• قيمة اشتراك الورش: مجاني حالياً بمناسبة شهر الإطلاق!</div>
+            </div>
+
+            <div class="investment-box">
+                <div class="investment-title">📉 نظام نسبة الوكالات الذكية</div>
+                <div class="investment-desc">الربط المباشر يضمن فلترة دقيقة حسب نوع السيارة لضمان جودة الخدمة ووصول دقيق لكل مستخدم.</div>
+            </div>
+        </div>
+        
+        <div class="bottom-nav-bar">
+            <div class="nav-item-btn" onclick="openFilteredGPS('ميكانيك سيارات ورشة')">
+                <span class="icon">🔧</span><span class="label-ar">ميكانيك</span><span class="label-en">Mechanic</span>
+            </div>
+            <div class="nav-item-btn" onclick="openFilteredGPS('بنشر وإطارات سيارات')">
+                <span class="icon">🛞</span><span class="label-ar">بنشر</span><span class="label-en">Tyres</span>
+            </div>
+            <div class="nav-item-btn" onclick="openFilteredGPS('مركز تغيير زيت سيارات')">
+                <span class="icon">🛢️</span><span class="label-ar">تغيير زيت</span><span class="label-en">Oil</span>
+            </div>
+            <div class="nav-item-btn" onclick="toggleAgencySearch()">
+                <span class="icon">🏢</span><span class="label-ar">الوكالات</span><span class="label-en">Agencies</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function playClickSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(120, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.04);
+            } catch (e) { console.log("Audio play blocked."); }
+        }
+
+        const welcomeMessage = "بسم الله الرحمن الرحيم أهلاً بك في تطبيق كَار";
+        const typewriterElement = document.getElementById('typewriter');
+        let charIndex = 0;
+        const typingSpeed = 90;
+
+        function startTypewriter() {
+            if (charIndex < welcomeMessage.length) {
+                typewriterElement.textContent += welcomeMessage.charAt(charIndex);
+                if (welcomeMessage.charAt(charIndex) !== " ") { playClickSound(); }
+                charIndex++;
+                setTimeout(startTypewriter, typingSpeed);
+            } else {
+                setTimeout(() => {
+                    const splash = document.getElementById('splash');
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
+                }, 600);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { setTimeout(startTypewriter, 500); });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+            if(tabName === 'chats') {
+                document.getElementById('sec-chats').classList.add('active');
+                document.getElementById('tab-chats').classList.add('active');
+            } else if(tabName === 'community') {
+                document.getElementById('sec-community').classList.add('active');
+                document.getElementById('tab-community').classList.add('active');
+            } else if(tabName === 'wallet') {
+                document.getElementById('sec-wallet').classList.add('active');
+                document.getElementById('tab-wallet').classList.add('active');
+            }
+        }
+
+        function toggleAgencySearch() {
+            const card = document.getElementById('agencyCard');
+            card.style.display = (card.style.display === 'block') ? 'none' : 'block';
+            if(card.style.display === 'block') card.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // تعديل نظام الـ GPS لحماية أرقامك والـ 10% وحصر العميل داخلياً
+        // ==========================================
+        function openFilteredGPS(keyword) {
+            const modal = document.getElementById('secureGpsModal');
+            const title = document.getElementById('secureModalTitle');
+            const listContainer = document.getElementById('secureWorkshopsList');
+            
+            title.innerText = `📍 أقرب خدمات [${keyword}] بالـ GPS الآمن`;
+            listContainer.innerHTML = ""; // تصفية القائمة السابقة
+            
+            // محاكاة ذكية للورش القريبة من العميل (تُسحب لاحقاً من السيرفر) بدون إظهار أي أرقام
+            const simulatedWorkshops = [
+                { name: "مركز البركة الفني الشامل", dist: "1.2 كم", rating: "⭐ 4.9" },
+                { name: "ورشة النجم السريع المتنقلة", dist: "3.5 كم", rating: "⭐ 4.7" },
+                { name: "المهندس المحترف لصيانة السيارات", dist: "5.0 كم", rating: "⭐ 4.8" }
+            ];
+
+            simulatedWorkshops.forEach(workshop => {
+                const itemHtml = `
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">${workshop.name}</span>
+                            <span style="color:#e9b646;">${workshop.dist} (${workshop.rating})</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: ${workshop.name}')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: ${workshop.name}')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                `;
+                listContainer.innerHTML += itemHtml;
+            });
+
+            modal.style.display = 'block';
+            modal.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function searchSpecificAgency() {
+            const brand = document.getElementById('carBrandInput').value;
+            if(brand.trim() === "") {
+                alert("الرجاء كتابة اسم أو ماركة سيارتك أولاً!");
+                return;
+            }
+            openFilteredGPS(`وكالة سيارات ${brand}`);
+        }
+
+        function secureAction(message) {
+            alert(`${message}\n\n[حماية كَار]: تم حصر الاتصال والدفع داخل النظام بنجاح، حقك المالي محمي 100%!`);
+        }
+
+        function searchYoutube() {
+            const query = document.getElementById('ytSearch').value;
+            if(query.trim() === "") {
+                alert("الرجاء كتابة العطل أولاً للحصول على الاستشارة الفورية!");
+                return;
+            }
+            const filterKeyword = "استشارات صيانة سيارات فنية ";
+            const fullQuery = encodeURIComponent(filterKeyword + query);
+            window.open(`https://www.youtube.com/results?search_query=${fullQuery}`, '_blank');
+        }
+
+        // نظام حساب الفترة التجريبية
+        let firstLaunch = localStorage.getItem('car_app_launch_date');
+        if (!firstLaunch) {
+            let today = new Date();
+            localStorage.setItem('car_app_launch_date', today.toISOString());
+            firstLaunch = today.toISOString();
+        }
+
+        let launchDate = new Date(firstLaunch);
+        let currentDate = new Date();
+        let diffTime = currentDate.getTime() - launchDate.getTime();
+        let diffDays = diffTime / (1000 * 3600 * 24);
+        let remainingDays = Math.ceil(30 - diffDays);
+
+        if (remainingDays > 0) {
+            document.getElementById('workPriceTag').innerText = "0 ر.س";
+            document.getElementById('workPriceDesc').innerText = "بمناسبة الإطلاق: الرسوم مجانية بالكامل لفترتك التجريبية!";
+            document.getElementById('workPriceDesc').style.color = "#00a884";
+            document.getElementById('subPriceDesc').innerText = "• قيمة اشتراك الورش: مجاني حالياً بمناسبة شهر الإطلاق!";
+            document.getElementById('promoBanner').innerText = `🎁 عرض الإطلاق: متبقي لك ${remainingDays} يوماً مجاناً بالكامل!`;
+            document.getElementById('promoBanner').style.color = "#00a884";
+            document.getElementById('promoBanner').style.borderColor = "#00a884";
+        } else {
+            document.getElementById('workPriceTag').innerText = "15 ر.س";
+            document.getElementById('workPriceDesc').innerText = "قيمة ثابتة وشفافة تظهر للعميل بوضوح داخل النظام";
+            document.getElementById('subPriceDesc').innerText = "• قيمة اشتراك الورش والمؤسسات: 3 ريال فقط رسوم تنزيل واشتراك رمزية.";
+            document.getElementById('promoBanner').innerText = "🔴 انتهت الفترة التجريبية المجانية. تم تفعيل رسوم العمل والاشتراك الأصلية.";
+            document.getElementById('promoBanner').style.color = "#ef5350";
+            document.getElementById('promoBanner').style.borderColor = "#ef5350";
+        }
+    </script>
+
+</body></html><html lang="ar" dir="rtl"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق CAR - النسخة الماستر الشاملة المحمية</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #0b141a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff; overflow: hidden;
+        }
+
+        /* حاوية الموبايل الماستر */
+        .phone-container {
+            width: 100%; max-width: 412px; height: 100%; max-height: 892px;
+            margin: 0 auto; background: #111b21; position: relative;
+            display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+
+        /* شاشة البدء المؤقتة (Splash) */
+        .splash-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b141a; display: flex; justify-content: center; align-items: center;
+            z-index: 999; transition: opacity 0.6s ease-in-out, visibility 0.6s;
+        }
+        .logo-box { text-align: center; padding: 20px; }
+        .logo-text-ar { font-size: 55px; font-weight: 900; color: #e9b646; margin: 0; }
+        .logo-text-en { font-size: 24px; font-weight: bold; color: #fff; margin: 5px 0 15px 0; letter-spacing: 6px; }
+        
+        .welcome-text-container {
+            font-size: 16px; font-weight: 500; color: #8696a0; min-height: 24px; margin-top: 10px; direction: rtl; display: inline-block;
+        }
+        
+        .cursor {
+            display: inline-block; width: 2px; height: 16px; background-color: #e9b646; margin-right: 3px; animation: blink 0.7s infinite; vertical-align: middle;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+        /* الهيدر العلوي بأسلوب الواتساب الفخم */
+        .whatsapp-header {
+            background-color: #202c33; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header-title { display: flex; flex-direction: column; }
+        .header-title .main-name { font-size: 22px; font-weight: bold; color: #e9b646; }
+        .header-title .sub-name { font-size: 11px; color: #8696a0; }
+        .header-icons { display: flex; gap: 18px; font-size: 20px; color: #aebac1; cursor: pointer; }
+
+        /* التبويبات العلوية الثلاثية */
+        .whatsapp-tabs { background-color: #202c33; display: flex; text-align: center; }
+        .tab-item { flex: 1; padding: 12px 0; font-size: 12px; font-weight: bold; color: #8696a0; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-item.active { color: #e9b646; border-bottom-color: #e9b646; }
+
+        /* حاوية المحتوى الرئيسي */
+        .content-section { flex: 1; overflow-y: auto; padding-bottom: 110px; display: none; }
+        .content-section.active { display: block; }
+
+        /* استشارة يوتيوب المفلترة */
+        .youtube-consult-card {
+            background-color: rgba(255, 0, 0, 0.1); border-bottom: 1px solid #222; padding: 12px 15px; display: flex; align-items: center; gap: 10px;
+        }
+        .yt-input { flex: 1; background: #2a3942; border: 1px solid #444; border-radius: 20px; padding: 8px 15px; color: white; font-size: 13px; }
+        .yt-btn { background: #ff0000; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        /* نافذة بحث الوكالة الذكية الجديدة */
+        .agency-search-card {
+            background-color: rgba(233, 182, 70, 0.1); border: 1px solid rgba(233, 182, 70, 0.3); border-radius: 12px; margin: 15px; padding: 15px; display: none; animation: fadeIn 0.4s ease;
+        }
+        .agency-input { width: 100%; background: #2a3942; border: 1px solid #e9b646; border-radius: 10px; padding: 10px; color: white; font-size: 14px; box-sizing: border-box; margin-bottom: 10px; text-align: center; }
+        .agency-btn { width: 100%; background: linear-gradient(135deg, #e9b646 0%, #9a721b 100%); color: #111b21; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* قوائم الدردشة والورش */
+        .chat-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #222; cursor: pointer; }
+        .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background-color: #687781; display: flex; justify-content: center; align-items: center; font-size: 24px; border: 2px solid #e9b646; position: relative; }
+        .chat-details { flex: 1; margin-right: 15px; text-align: right; }
+        .chat-name { font-size: 15px; font-weight: bold; color: #e9b646; }
+        .chat-msg { font-size: 13px; color: #8696a0; margin-top: 3px; }
+
+        /* ========================================== */
+        /* ستايل نظام حصر وتأمين الـ GPS الجديد (الدرع الواقي) */
+        /* ========================================== */
+        .secure-gps-modal {
+            background: #1f2c34; border: 2px solid #e9b646; border-radius: 16px; margin: 15px; padding: 15px; display: none; animation: fadeIn 0.4s ease;
+        }
+        .secure-modal-title { font-size: 16px; font-weight: bold; color: #e9b646; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
+        .secure-workshop-item { background: #2a3942; border-radius: 10px; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; border-right: 4px solid #00a884; }
+        .workshop-info-row { display: flex; justify-content: space-between; font-size: 13px; }
+        .workshop-buttons-row { display: flex; gap: 8px; }
+        .secure-btn-chat { flex: 1; background: #00a884; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+        .secure-btn-pay { flex: 1; background: linear-gradient(135deg, #e9b646 0%, #9a721b 100%); color: #111b21; border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+        .secure-lock-badge { font-size: 10px; color: #8696a0; text-align: center; margin-top: 5px; display: block; }
+
+        /* مكونات قسم مجتمع كَار وبناء الصداقات */
+        .profile-summary-card { background: #202c33; margin: 15px; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; border-left: 4px solid #e9b646; }
+        .user-info h4 { margin: 0; color: #e9b646; font-size: 16px; }
+        .user-info p { margin: 3px 0 0 0; color: #8696a0; font-size: 12px; }
+
+        .post-box { background: #1f2c34; border: 1px solid #2d3b43; border-radius: 12px; margin: 15px; padding: 12px; }
+        .post-input { width: 100%; background: #2a3942; border: none; border-radius: 8px; padding: 10px; color: white; box-sizing: border-box; font-size: 13px; resize: none; }
+        .post-btn { background: #00a884; color: white; border: none; padding: 6px 15px; border-radius: 15px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; float: left; }
+
+        .community-feed { padding: 0 15px; }
+        .feed-post { background: #202c33; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.02); }
+        .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .post-user { font-weight: bold; color: #e9b646; font-size: 13px; }
+        .post-time { font-size: 10px; color: #8696a0; margin-right: auto; }
+        .post-content { font-size: 13px; color: #e9edef; line-height: 1.4; }
+        .post-actions { display: flex; gap: 20px; margin-top: 10px; font-size: 12px; color: #8696a0; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; cursor: pointer; }
+
+        /* شاشة عرض الأسعار والنسب الذكية */
+        .wallet-card { background: linear-gradient(135deg, #202c33 0%, #111b21 100%); margin: 15px; padding: 15px; border-radius: 15px; border: 1px solid rgba(233, 182, 70, 0.2); text-align: center; }
+        .price-tag { font-size: 26px; font-weight: 900; color: #e9b646; margin: 8px 0; }
+        
+        .investment-box { background: #202c33; margin: 10px 15px; padding: 12px; border-radius: 12px; border-right: 4px solid #e9b646; }
+        .investment-title { font-weight: bold; font-size: 13px; color: #fff; margin-bottom: 4px; }
+        .investment-desc { font-size: 11px; color: #8696a0; line-height: 1.4; }
+
+        /* شريط الـ GPS السفلي */
+        .bottom-nav-bar {
+            position: absolute; bottom: 20px; left: 8%; right: 8%; width: 84%; background: #ffffff; border-radius: 16px; padding: 8px 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); box-sizing: border-box; z-index: 10;
+        }
+
+        .nav-item-btn {
+            background: #202c33; border: 1px solid rgba(233, 182, 70, 0.3); border-radius: 10px; color: #e9b646; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 2px; cursor: pointer; transition: all 0.25s ease;
+        }
+        .nav-item-btn:active, .nav-item-btn:hover { background: linear-gradient(135deg, #e9b646 0%, #9a721b 100%); color: #111b21; border-color: #e9b646; transform: translateY(-2px); }
+        .nav-item-btn .icon { font-size: 18px; margin-bottom: 2px; }
+        .nav-item-btn .label-ar { font-size: 10px; font-weight: bold; }
+        .nav-item-btn .label-en { font-size: 8px; opacity: 0.8; }
+
+        .promo-banner { background: #1f2c34; padding: 10px; margin: 15px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: bold; border: 1px dashed #e9b646; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        
+        <div class="splash-screen" id="splash" style="opacity: 0; visibility: hidden;">
+            <div class="logo-box">
+                <div class="logo-text-ar">كَار</div>
+                <div class="logo-text-en">CAR</div>
+                <div class="welcome-text-container">
+                    <span id="typewriter">بسم الله الرحمن الرحيم أهلاً بك في تطبيق كَار</span><span class="cursor"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="whatsapp-header">
+            <div class="header-title">
+                <span class="main-name">كَار / CAR</span>
+                <span class="sub-name">الوكالات، الصيانة، ومجتمع العملاء</span>
+            </div>
+            <div class="header-icons">
+                <span onclick="switchTab('chats')">💬</span>
+                <span onclick="switchTab('community')">👥</span>
+                <span onclick="switchTab('wallet')">💰</span>
+            </div>
+        </div>
+
+        <div class="whatsapp-tabs">
+            <div class="tab-item active" id="tab-chats" onclick="switchTab('chats')">الخدمات / Chats</div>
+            <div class="tab-item" id="tab-community" onclick="switchTab('community')">مجتمع كَار / Community</div>
+            <div class="tab-item" id="tab-wallet" onclick="switchTab('wallet')">الأسعار / Rates</div>
+        </div>
+
+        <div class="content-section active" id="sec-chats">
+            <div class="youtube-consult-card">
+                <span style="font-size: 24px;">💡</span>
+                <input type="text" id="ytSearch" class="yt-input" placeholder="اكتب مشكلة السيارة للحصول على استشارة...">
+                <button class="yt-btn" onclick="searchYoutube()">استشارة</button>
+            </div>
+
+            <div class="agency-search-card" id="agencyCard" style="display: none;">
+                <input type="text" id="carBrandInput" class="agency-input" placeholder="اكتب ماركة سيارتك (مثال: شانجان، BMW، تويوتا)...">
+                <button class="agency-btn" onclick="searchSpecificAgency()">ابحث عن الوكالة بالـ GPS</button>
+            </div>
+
+            <div class="secure-gps-modal" id="secureGpsModal" style="display: block;">
+                <div class="secure-modal-title" id="secureModalTitle">📍 أقرب خدمات [مركز تغيير زيت سيارات] بالـ GPS الآمن</div>
+                <div id="secureWorkshopsList">
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">مركز البركة الفني الشامل</span>
+                            <span style="color:#e9b646;">1.2 كم (⭐ 4.9)</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: مركز البركة الفني الشامل')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: مركز البركة الفني الشامل')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">ورشة النجم السريع المتنقلة</span>
+                            <span style="color:#e9b646;">3.5 كم (⭐ 4.7)</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: ورشة النجم السريع المتنقلة')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: ورشة النجم السريع المتنقلة')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">المهندس المحترف لصيانة السيارات</span>
+                            <span style="color:#e9b646;">5.0 كم (⭐ 4.8)</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: المهندس المحترف لصيانة السيارات')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: المهندس المحترف لصيانة السيارات')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                </div>
+                <span class="secure-lock-badge">🛡️ جميع المعاملات والاتصالات مشفرة ومحمية لحفظ حقوقك</span>
+            </div>
+
+            <div class="chat-row" onclick="openFilteredGPS('ميكانيك سيارات ورشة')">
+                <div class="profile-avatar">🔧</div>
+                <div class="chat-details">
+                    <div class="chat-name">ميكانيك سيارات / Mechanics</div>
+                    <div class="chat-msg">تحديد الورش وفلاتر الـ GPS نشطة وآمنة الآن..</div>
+                </div>
+            </div>
+
+            <div class="chat-row" onclick="toggleAgencySearch()">
+                <div class="profile-avatar">🏢</div>
+                <div class="chat-details">
+                    <div class="chat-name">ابحث عن وكالة سيارتك المحددة</div>
+                    <div class="chat-msg">اضغط هنا واكتب نوع سيارتك لفلترة موقع الوكالة بالملي..</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="sec-community">
+            <div class="profile-summary-card">
+                <div class="profile-avatar" style="background-color: #e9b646; color: #111b21; font-weight: bold;">👤</div>
+                <div class="user-info">
+                    <h4>ملفي الشخصي (العميل)</h4>
+                    <p>نوع السيارة المفضلة: تويوتا كامري / سيارات رياضية</p>
+                </div>
+            </div>
+
+            <div class="post-box">
+                <textarea class="post-input" rows="2" placeholder="شارك ملاك السيارات تجربتك أو اسأل عن نصيحة..."></textarea>
+                <button class="post-btn" onclick="alert('تم نشر مشاركتك في مجتمع كَار بنجاح!')">انشر الآن</button>
+                <div style="clear: both;"></div>
+            </div>
+
+            <div class="community-feed">
+                <div class="feed-post">
+                    <div class="post-header">
+                        <div class="profile-avatar" style="width:32px; height:32px; font-size:16px;">🚗</div>
+                        <div class="post-user">أبو أحمد (راعي شانجان)</div>
+                        <div class="post-time">منذ 10 دقائق</div>
+                    </div>
+                    <div class="post-content">يا شباب وكالة الشانجان الجديدة خدمتهم سريعة بالـ GPS وفلاتر التطبيق جابت لي أقرب فرع بالملي! أنصحكم فيه.</div>
+                    <div class="post-actions">
+                        <span onclick="alert('تم إرسال طلب صداقة لأبو أحمد!')">➕ إضافة صديق</span>
+                        <span onclick="alert('فتح دردشة خاصة لبناء صداقة ومشاركة الخبرات...')">💬 دردشة</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section" id="sec-wallet">
+            <div class="promo-banner" id="promoBanner" style="color: rgb(0, 168, 132); border-color: rgb(0, 168, 132);">🎁 عرض الإطلاق: متبقي لك 27 يوماً مجاناً بالكامل!</div>
+
+            <div class="wallet-card">
+                <div style="font-size: 13px; color: #8696a0;">رسوم تصليح العطل والعمل للزبون</div>
+                <div class="price-tag" id="workPriceTag">0 ر.س</div>
+                <div style="font-size: 11px; color: rgb(0, 168, 132);" id="workPriceDesc">بمناسبة الإطلاق: الرسوم مجانية بالكامل لفترتك التجريبية!</div>
+            </div>
+
+            <div class="investment-box">
+                <div class="investment-title">🚗 تسعيرة مشوار الخدمة المتنقلة والسطحات</div>
+                <div class="investment-desc">
+                    • <strong>سعر الكيلومتر الواحد (Per KM Rate):</strong> 2 ريال سعودي يتم احتسابها تلقائياً بالـ GPS من موقع الورشة إلى العميل.<br>
+                    • <strong>نسبة التطبيق الذكية (Platform Fee):</strong> تبلغ 10% تُخصم من إجمالي قيمة المشوار لصالح إدارة التطبيق (حصتك الاستثمارية).
+                </div>
+            </div>
+
+            <div class="investment-box">
+                <div class="investment-title">🎫 قيمة اشتراك الورش والمؤسسات</div>
+                <div class="investment-desc" id="subPriceDesc">• قيمة اشتراك الورش: مجاني حالياً بمناسبة شهر الإطلاق!</div>
+            </div>
+
+            <div class="investment-box">
+                <div class="investment-title">📉 نظام نسبة الوكالات الذكية</div>
+                <div class="investment-desc">الربط المباشر يضمن فلترة دقيقة حسب نوع السيارة لضمان جودة الخدمة ووصول دقيق لكل مستخدم.</div>
+            </div>
+        </div>
+        
+        <div class="bottom-nav-bar">
+            <div class="nav-item-btn" onclick="openFilteredGPS('ميكانيك سيارات ورشة')">
+                <span class="icon">🔧</span><span class="label-ar">ميكانيك</span><span class="label-en">Mechanic</span>
+            </div>
+            <div class="nav-item-btn" onclick="openFilteredGPS('بنشر وإطارات سيارات')">
+                <span class="icon">🛞</span><span class="label-ar">بنشر</span><span class="label-en">Tyres</span>
+            </div>
+            <div class="nav-item-btn" onclick="openFilteredGPS('مركز تغيير زيت سيارات')">
+                <span class="icon">🛢️</span><span class="label-ar">تغيير زيت</span><span class="label-en">Oil</span>
+            </div>
+            <div class="nav-item-btn" onclick="toggleAgencySearch()">
+                <span class="icon">🏢</span><span class="label-ar">الوكالات</span><span class="label-en">Agencies</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function playClickSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(120, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.04);
+            } catch (e) { console.log("Audio play blocked."); }
+        }
+
+        const welcomeMessage = "بسم الله الرحمن الرحيم أهلاً بك في تطبيق كَار";
+        const typewriterElement = document.getElementById('typewriter');
+        let charIndex = 0;
+        const typingSpeed = 90;
+
+        function startTypewriter() {
+            if (charIndex < welcomeMessage.length) {
+                typewriterElement.textContent += welcomeMessage.charAt(charIndex);
+                if (welcomeMessage.charAt(charIndex) !== " ") { playClickSound(); }
+                charIndex++;
+                setTimeout(startTypewriter, typingSpeed);
+            } else {
+                setTimeout(() => {
+                    const splash = document.getElementById('splash');
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
+                }, 600);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { setTimeout(startTypewriter, 500); });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+            if(tabName === 'chats') {
+                document.getElementById('sec-chats').classList.add('active');
+                document.getElementById('tab-chats').classList.add('active');
+            } else if(tabName === 'community') {
+                document.getElementById('sec-community').classList.add('active');
+                document.getElementById('tab-community').classList.add('active');
+            } else if(tabName === 'wallet') {
+                document.getElementById('sec-wallet').classList.add('active');
+                document.getElementById('tab-wallet').classList.add('active');
+            }
+        }
+
+        function toggleAgencySearch() {
+            const card = document.getElementById('agencyCard');
+            card.style.display = (card.style.display === 'block') ? 'none' : 'block';
+            if(card.style.display === 'block') card.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // تعديل نظام الـ GPS لحماية أرقامك والـ 10% وحصر العميل داخلياً
+        // ==========================================
+        function openFilteredGPS(keyword) {
+            const modal = document.getElementById('secureGpsModal');
+            const title = document.getElementById('secureModalTitle');
+            const listContainer = document.getElementById('secureWorkshopsList');
+            
+            title.innerText = `📍 أقرب خدمات [${keyword}] بالـ GPS الآمن`;
+            listContainer.innerHTML = ""; // تصفية القائمة السابقة
+            
+            // محاكاة ذكية للورش القريبة من العميل (تُسحب لاحقاً من السيرفر) بدون إظهار أي أرقام
+            const simulatedWorkshops = [
+                { name: "مركز البركة الفني الشامل", dist: "1.2 كم", rating: "⭐ 4.9" },
+                { name: "ورشة النجم السريع المتنقلة", dist: "3.5 كم", rating: "⭐ 4.7" },
+                { name: "المهندس المحترف لصيانة السيارات", dist: "5.0 كم", rating: "⭐ 4.8" }
+            ];
+
+            simulatedWorkshops.forEach(workshop => {
+                const itemHtml = `
+                    <div class="secure-workshop-item">
+                        <div class="workshop-info-row">
+                            <span style="font-weight:bold; color:#fff;">${workshop.name}</span>
+                            <span style="color:#e9b646;">${workshop.dist} (${workshop.rating})</span>
+                        </div>
+                        <div class="workshop-buttons-row">
+                            <button class="secure-btn-chat" onclick="secureAction('فتح الشات المشفر الآمن مع: ${workshop.name}')">💬 شات داخلي</button>
+                            <button class="secure-btn-pay" onclick="secureAction('تحويلك لبوابة الدفع لحجز الرسوم وضمان الـ 10% لورشة: ${workshop.name}')">💸 طلب ودفع بالبرنامج</button>
+                        </div>
+                    </div>
+                `;
+                listContainer.innerHTML += itemHtml;
+            });
+
+            modal.style.display = 'block';
+            modal.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function searchSpecificAgency() {
+            const brand = document.getElementById('carBrandInput').value;
+            if(brand.trim() === "") {
+                alert("الرجاء كتابة اسم أو ماركة سيارتك أولاً!");
+                return;
+            }
+            openFilteredGPS(`وكالة سيارات ${brand}`);
+        }
+
+        function secureAction(message) {
+            alert(`${message}\n\n[حماية كَار]: تم حصر الاتصال والدفع داخل النظام بنجاح، حقك المالي محمي 100%!`);
+        }
+
+        function searchYoutube() {
+            const query = document.getElementById('ytSearch').value;
+            if(query.trim() === "") {
+                alert("الرجاء كتابة العطل أولاً للحصول على الاستشارة الفورية!");
+                return;
+            }
+            const filterKeyword = "استشارات صيانة سيارات فنية ";
+            const fullQuery = encodeURIComponent(filterKeyword + query);
+            window.open(`https://www.youtube.com/results?search_query=${fullQuery}`, '_blank');
+        }
+
+        // نظام حساب الفترة التجريبية
+        let firstLaunch = localStorage.getItem('car_app_launch_date');
+        if (!firstLaunch) {
+            let today = new Date();
+            localStorage.setItem('car_app_launch_date', today.toISOString());
+            firstLaunch = today.toISOString();
+        }
+
+        let launchDate = new Date(firstLaunch);
+        let currentDate = new Date();
+        let diffTime = currentDate.getTime() - launchDate.getTime();
+        let diffDays = diffTime / (1000 * 3600 * 24);
+        let remainingDays = Math.ceil(30 - diffDays);
+
+        if (remainingDays > 0) {
+            document.getElementById('workPriceTag').innerText = "0 ر.س";
+            document.getElementById('workPriceDesc').innerText = "بمناسبة الإطلاق: الرسوم مجانية بالكامل لفترتك التجريبية!";
+            document.getElementById('workPriceDesc').style.color = "#00a884";
+            document.getElementById('subPriceDesc').innerText = "• قيمة اشتراك الورش: مجاني حالياً بمناسبة شهر الإطلاق!";
+            document.getElementById('promoBanner').innerText = `🎁 عرض الإطلاق: متبقي لك ${remainingDays} يوماً مجاناً بالكامل!`;
+            document.getElementById('promoBanner').style.color = "#00a884";
+            document.getElementById('promoBanner').style.borderColor = "#00a884";
+        } else {
+            document.getElementById('workPriceTag').innerText = "15 ر.س";
+            document.getElementById('workPriceDesc').innerText = "قيمة ثابتة وشفافة تظهر للعميل بوضوح داخل النظام";
+            document.getElementById('subPriceDesc').innerText = "• قيمة اشتراك الورش والمؤسسات: 3 ريال فقط رسوم تنزيل واشتراك رمزية.";
+            document.getElementById('promoBanner').innerText = "🔴 انتهت الفترة التجريبية المجانية. تم تفعيل رسوم العمل والاشتراك الأصلية.";
+            document.getElementById('promoBanner').style.color = "#ef5350";
+            document.getElementById('promoBanner').style.borderColor = "#ef5350";
+        }
+    </script>
+
+</body></html>
